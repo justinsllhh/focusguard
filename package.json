@@ -1,0 +1,25 @@
+{
+  "name": "focusguard-ai",
+  "version": "1.0.0",
+  "description": "On-device computer vision focus session analyzer and activity pattern tracker",
+  "main": "src/App.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "focus-tracker",
+    "computer-vision",
+    "pose-estimation",
+    "on-device-ai",
+    "privacy-first",
+    "study-productivity"
+  ],
+  "author": "Antigravity AI",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
+  }
+}

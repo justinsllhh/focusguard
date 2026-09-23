@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FocusGuard AI - Privacy-first on-device computer vision study & workspace focus pattern analysis tool.">
+  <title>FocusGuard AI — Workspace Focus Pattern Analysis</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Bar / Navigation -->
+    <header class="app-header glass-panel">
+      <div class="brand-section">
+        <div class="brand-icon">🎯</div>
+        <div>
+          <h1 class="brand-title">FocusGuard AI</h1>
+          <p class="brand-tagline">Visual Workspace & Attention Pattern Telemetry</p>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div class="privacy-badge">
+          <span class="pulse-dot"></span>
+          <span>100% On-Device / Zero Cloud</span>
+        </div>
+        <div class="streak-badge">
+          <span>🔥 Streak:</span>
+          <strong id="currentStreak">0 Days</strong>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Live Workspace Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Video Viewport Column -->
+      <section class="viewport-card glass-panel" aria-label="Camera Workspace Viewport">
+        <div class="viewport-header">
+          <div class="viewport-title">
+            <span>🎥 Workspace Camera Feed</span>
+            <span id="cameraStatusBadge" style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 9999px; background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3);">Camera Standby</span>
+          </div>
+          <div class="fps-counter" id="fpsValue">0.0 FPS</div>
+        </div>
+
+        <!-- Camera Error / Permission Notice Banner -->
+        <div id="cameraErrorBanner" style="display: none; padding: 0.85rem 1rem; border-radius: 8px; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); color: #fecdd3; font-size: 0.85rem; margin-bottom: 0.5rem;">
+          <div style="display: flex; align-items: flex-start; gap: 0.6rem;">
+            <span style="font-size: 1.2rem;">🚫</span>
+            <div style="flex: 1;">
+              <strong id="cameraErrorTitle">Akses Kamera Diperlukan</strong>
+              <p id="cameraErrorMessage" style="margin-top: 0.25rem; font-size: 0.8rem; color: #fda4af;">
+                Klik tombol "Start Session" di bawah, lalu izinkan (Allow) akses webcam pada prompt browser.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="camera-container">
+          <video id="webcamVideo" class="video-element" autoplay playsinline muted></video>
+          <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+
+          <!-- 5s Workspace Calibration Overlay -->
+          <div id="calibrationOverlay" class="calibration-overlay hidden">
+            <div class="calibration-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="bg-circle" cx="50" cy="50" r="42"></circle>
+                <circle class="progress-circle" id="calibrationProgressCircle" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="0"></circle>
+              </svg>
+              <div id="calibrationCountdown" class="calibration-countdown">5s</div>
+            </div>
+            <div class="calibration-text">
+              <h4>Calibrating Workspace Baseline</h4>
+              <p id="calibrationDesc">Please sit in your normal, ergonomic posture facing your workstation.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+          <div class="btn-group">
+            <button id="startBtn" class="btn btn-primary">
+              <span>▶ Start Session</span>
+            </button>
+            <button id="pauseBtn" class="btn btn-secondary" disabled>
+              <span>⏸ Pause</span>
+            </button>
+            <button id="stopBtn" class="btn btn-stop" disabled>
+              <span>⏹ End Session</span>
+            </button>
+          </div>
+          <div class="btn-group">
+            <button id="calibrateBtn" class="btn btn-secondary">
+              <span>🎯 Re-Calibrate (5s)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Real-Time Metrics & Telemetry Column -->
+      <section class="telemetry-card glass-panel" aria-label="Focus Telemetry Indicators">
+        
+        <!-- Score Circular Gauge Widget -->
+        <div class="score-widget-large">
+          <div class="score-circle-container">
+            <svg viewBox="0 0 100 100">
+              <circle class="score-bg" cx="50" cy="50" r="40"></circle>
+              <circle class="score-bar" id="scoreRing" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+            </svg>
+            <div class="score-center-value">
+              <span id="scoreNumber" class="score-number">--</span>
+              <span class="score-unit">FPS Index</span>
+            </div>
+          </div>
+          <div class="score-meta">
+            <div class="score-meta-title">Focus Pattern Score</div>
+            <div id="scoreStatusDesc" class="score-meta-desc">Session inactive. Start session to analyze visual posture & gaze.</div>
+          </div>
+        </div>
+
+        <!-- Distraction Sustained Alert Banner -->
+        <div id="distractionAlert" class="distraction-alert">
+          <span>⚠️</span>
+          <span id="distractionAlertText">Distraction detected in workspace!</span>
+        </div>
+
+        <!-- Live Telemetry Stats Grid -->
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label">⏱ Elapsed Time</span>
+            <span id="sessionTimer" class="telemetry-value">00:00:00</span>
+          </div>
+
+          <div class="telemetry-item">
+            <span class="telemetry-label">🪑 Observed Posture</span>
+            <span id="postureValue" class="telemetry-value">Unknown</span>
+          </div>
+
+          <div class="telemetry-item">
+            <span class="telemetry-label">👀 Attention Direction</span>
+            <span id="attentionValue" class="telemetry-value">Unknown</span>
+          </div>
+
+          <div class="telemetry-item">
+            <span class="telemetry-label">📱 Potential Distraction</span>
+            <span id="distractionValue" class="telemetry-value">None</span>
+          </div>
+        </div>
+
+        <!-- Privacy & Ethical Integrity Note -->
+        <div style="font-size: 0.75rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--glass-border);">
+          💡 <strong>Ethical AI Guardrail:</strong> FocusGuard measures observable physical activity patterns (gaze orientation, posture shifts, phone presence) and does not infer emotions, psychology, or intent.
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Multi-Layer Visual Activity Timeline -->
+    <section class="timeline-card glass-panel" aria-label="Visual Activity Timeline">
+      <div class="timeline-header">
+        <h3 style="font-size: 1.05rem; font-weight: 600;">📊 Temporal Activity Timeline</h3>
+        <span style="font-size: 0.75rem; color: var(--text-secondary);">Real-time multi-track pattern log</span>
+      </div>
+
+      <div class="timeline-canvas-wrapper">
+        <canvas id="timelineCanvas" class="timeline-canvas"></canvas>
+      </div>
+
+      <div class="timeline-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #10b981;"></div>
+          <span>High Focus (Facing Screen)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f59e0b;"></div>
+          <span>Moderate / Shifted Attention</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f43f5e;"></div>
+          <span>Potential Distraction / Phone</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #64748b;"></div>
+          <span>Away / Workspace Exit</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- History & Gamification Insights -->
+    <div class="insights-grid">
+      
+      <!-- Session History -->
+      <section class="history-card glass-panel" aria-label="Session History">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 1.05rem; font-weight: 600;">📚 Session History (<span id="historyCount">0</span>)</h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportJsonBtn" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">JSON</button>
+            <button id="exportCsvBtn" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">CSV</button>
+            <button id="clearHistoryBtn" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: var(--accent-rose);">Clear</button>
+          </div>
+        </div>
+
+        <div id="historyList" class="history-list">
+          <div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center;">
+            No past sessions recorded on this device yet.
+          </div>
+        </div>
+      </section>
+
+      <!-- Gamification & Milestones -->
+      <section class="milestones-card glass-panel" aria-label="Milestones & Badges">
+        <h3 style="font-size: 1.05rem; font-weight: 600;">🏆 Milestones & Achievements</h3>
+        <div id="achievementsList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem;">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Session Report Modal -->
+    <div id="reportModal" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3>📑 Session Focus Pattern Report</h3>
+            <p>Objective telemetry and visual activity breakdown</p>
+          </div>
+          <button id="closeReportBtn" class="modal-close-btn" aria-label="Close modal">&times;</button>
+        </div>
+
+        <div class="report-stats-grid">
+          <div class="report-stat-card">
+            <div id="reportScore" class="report-stat-val">--</div>
+            <div class="report-stat-lbl">Focus Score</div>
+          </div>
+          <div class="report-stat-card">
+            <div id="reportFocusTime" class="report-stat-val">00:00</div>
+            <div class="report-stat-lbl">Active Focus Time</div>
+          </div>
+          <div class="report-stat-card">
+            <div id="reportDistractedTime" class="report-stat-val">00:00</div>
+            <div class="report-stat-lbl">Distracted / Shifted</div>
+          </div>
+        </div>
+
+        <div class="report-summary-box">
+          <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--accent-cyan);">🤖 AI Observational Summary</h4>
+          <div id="reportNarrative" class="report-narrative">
+            Generating summary...
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; font-size: 0.85rem;">
+          <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--glass-border);">
+            <strong>🪑 Posture Distributions:</strong>
+            <div id="reportPostureSummary" style="color: var(--text-secondary); margin-top: 0.35rem;">-</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--glass-border);">
+            <strong>👀 Attention Orientations:</strong>
+            <div id="reportAttentionSummary" style="color: var(--text-secondary); margin-top: 0.35rem;">-</div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="modalCloseActionBtn" class="btn btn-primary" onclick="document.getElementById('reportModal').classList.remove('open')">
+            Close Report
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer & Disclaimers -->
+    <footer class="app-footer">
+      <div>FocusGuard AI • Privacy-First Computer Vision Engine</div>
+      <p class="ethical-notice">
+        <strong>Privacy & Observational Notice:</strong> All computer vision processing happens strictly on your device using client-side JavaScript. No video frames, audio, or biometric features are transmitted to remote servers. All telemetry represents observable visual events, not internal thoughts or psychological evaluations.
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Universal Script Bundle -->
+  <script src="js/bundle.js?v=2.2"></script>
+</body>
+</html>
