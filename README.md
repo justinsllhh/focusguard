@@ -6,7 +6,7 @@
 
 ## 📸 Screenshot
 
-![Screenshot Aplikasi FocusGuard AI](screenshot.png)
+![Screenshot Aplikasi FocusGuard AI](assets/screenshot.png)
 
 ---
 
